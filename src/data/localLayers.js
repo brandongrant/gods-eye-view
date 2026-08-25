@@ -5,6 +5,7 @@ import submarineCablesLayer from './telegeographySubmarineCables.js';
 // Use Vite's ?url import to properly resolve these assets in dev and build
 import datacentersUrl from './local_data/datacenters/datacenters.geojsonl?url';
 import damsUrl from './local_data/dams/dams.geojsonl?url';
+import pulaskiSurveillanceUrl from './local_data/pulaski_surveillance/pulaski_surveillance.geojsonl?url';
 
 /**
  * Registry of local GeoJSON datasets.
@@ -44,9 +45,27 @@ const fires = createFirmsHeatmapLayer({
   source: 'NASA FIRMS · LIVE',
 });
 
+// Publicly documented surveillance devices in Pulaski County, Arkansas: ARDOT
+// traffic cameras, plate readers, gunshot sensors, and road-visible sightings.
+// Device-level infrastructure only — nothing about people or what was observed.
+const pulaskiSurveillance = createLocalGeoJsonLayer({
+  id: 'local-pulaski-surveillance',
+  url: pulaskiSurveillanceUrl,
+  name: 'Pulaski Surveillance',
+  color: '#ff3366', // Red
+  icon: '◉',
+  source: 'PAgis / ARDOT / LRPD FOIA / OSM',
+  labels: true,
+  // 525 features inside one county: they collapse into a single cluster at any
+  // zoom that fits the county, so the grid is tighter than the global layers'.
+  labelMax: 525,
+  labelGridPx: 120,
+});
+
 export default [
   datacenters,
   dams,
   submarineCablesLayer,
   fires,
+  pulaskiSurveillance,
 ];

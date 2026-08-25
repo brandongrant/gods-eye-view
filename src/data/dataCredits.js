@@ -161,6 +161,14 @@ export const DATA_CREDITS = [
       '(ODbL 1.0) + Open Infrastructure Map',
   },
   {
+    key: 'pulaski-surveillance',
+    html:
+      'Pulaski surveillance devices: Arkansas Department of Transportation, ' +
+      'Little Rock Police Department (FOIA PDFOIA-2025-4004), ' +
+      '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a> ' +
+      '(ODbL 1.0), and volunteer field sightings',
+  },
+  {
     key: 'firms',
     html:
       'Active fires: NASA FIRMS — we acknowledge the use of data and/or imagery ' +

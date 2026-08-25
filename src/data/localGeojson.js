@@ -13,6 +13,16 @@ import {
 
 const DEFAULT_LABEL_MAX = 900;
 const DEFAULT_LABEL_GRID_PX = 132;
+// `fam` codes carried by the Pulaski surveillance snapshot, spelled out for the
+// ambient card. Anything unlisted falls back to the bare label rather than
+// inventing a description for a device family we have not seen.
+const PULASKI_DEVICE_FAMILIES = Object.freeze({
+  traffic: 'Traffic camera',
+  alpr: 'Plate reader',
+  gunshot: 'Gunshot sensor',
+  camera: 'Camera',
+  sighting: 'Field sighting',
+});
 const VISIBILITY_UPDATE_MS = 450;
 // Each source keeps its own bounded cohort; the host sums their ambient-card
 // paint budgets only up to its 192-card shared-lane ceiling.
@@ -90,6 +100,18 @@ export function localInfrastructureOverlayCopy(properties, layerId) {
     if (river && river.toLocaleLowerCase() !== title.toLocaleLowerCase()) {
       details.push(clampCardLine(river));
     }
+  } else if (layerId === 'local-pulaski-surveillance') {
+    const kind = PULASKI_DEVICE_FAMILIES[props.fam] || '';
+    const operator = firstClean([props.operator, props.op, props.make]);
+    // A `sighting` is a device that matched nothing published, so how sure the
+    // observer was IS the record. Showing one without its confidence would
+    // present a road-side guess as an established fact.
+    const confidence = props.fam === 'sighting' ? cleanLabel(props.conf) : '';
+    const line = [kind, operator, confidence]
+      .filter((value, index, values) => value && values.indexOf(value) === index)
+      .filter((value) => value.toLocaleLowerCase() !== title.toLocaleLowerCase())
+      .join(' · ');
+    if (line) details.push(clampCardLine(line));
   }
 
   return { title, details };
@@ -842,6 +864,9 @@ function labelPriorityFromProperties(props, layerId) {
   if (props.output || tags['plant:output:electricity']) score += 120;
   if (layerId === 'local-dams') score += 80;
   if (layerId === 'local-datacenters') score += 60;
+  // Whole-county dataset: a label is only ever competing with its own siblings,
+  // and an agency-published device outranks an unmatched road-side sighting.
+  if (layerId === 'local-pulaski-surveillance') score += props.public ? 90 : 40;
   return score;
 }
 
@@ -888,5 +913,6 @@ function clampCardLine(value) {
 function layerTitle(layerId) {
   if (layerId === 'local-datacenters') return 'Datacenter';
   if (layerId === 'local-dams') return 'Dam';
+  if (layerId === 'local-pulaski-surveillance') return 'Surveillance device';
   return 'Feature';
 }

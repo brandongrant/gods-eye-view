@@ -65,6 +65,7 @@ Static datasets shipped in the repo for an out-of-the-box experience. **None are
 | **TeleGeography Submarine Cable Map** (712 cables + 1,917 landing points) | `telegeography_submarine_cables/` | **CC BY-NC-SA 3.0** | ❌ **NonCommercial — remove for commercial use** | "© TeleGeography — submarinecablemap.com" |
 | **Natural Earth physical regions** (1,046 land + 292 marine named polygons) | `natural_earth/` | **Public domain** | ✅ (no restrictions) | "Made with Natural Earth" (courtesy credit — not legally required) |
 | **DataSF Analysis Neighborhoods** (41 SF neighborhood polygons) | `neighborhoods/` | **PDDL 1.0** (public domain) | ✅ (no restrictions) | "City & County of San Francisco — DataSF" (courtesy — not legally required) |
+| **Pulaski surveillance devices** (525 devices in Pulaski County, AR) | `pulaski_surveillance/` | **Mixed** — public agency records + FOIA response (public domain / no restriction) with an **ODbL 1.0** OpenStreetMap-derived subset | ✅ (attribution + share-alike on the OSM-derived subset) | "ARDOT, LRPD (FOIA PDFOIA-2025-4004), © OpenStreetMap contributors" |
 
 ### ⚠️ TeleGeography is bundled but NonCommercial
 
@@ -131,8 +132,44 @@ the retrieval date (2026-07-30), exact download URL, license evidence, and the
 deterministic transform (`scripts/build-sf-neighborhoods.mjs`: `nhood` → `name`, ~2 m
 Douglas-Peucker simplification, 6-decimal rounding).
 
+### Pulaski surveillance devices (`pulaski_surveillance/`)
+
+`pulaski_surveillance/pulaski_surveillance.geojsonl` bundles 525 publicly documented
+surveillance devices in Pulaski County, Arkansas. Rebuild it with
+`node tools/pulaski/build-surveillance-snapshot.mjs`, which reads the published GeoJSON
+from [`brandongrant/pulaski_building_map`](https://github.com/brandongrant/pulaski_building_map)
+over HTTPS — that repository is upstream and read-only.
+
+Four contributing sources, each with a different license posture:
+
+- **ARDOT published camera layer** (~191 traffic cameras) — a public agency publication,
+  including device model and the live `.m3u8` stream URL the agency itself serves.
+- **LRPD reader list** — obtained via FOIA request `PDFOIA-2025-4004`; a released public
+  record, no license restriction.
+- **OpenStreetMap `man_made=surveillance`** (DeFlock tagging) — **ODbL 1.0**. This subset is
+  why the dataset carries a share-alike obligation, and why the OpenStreetMap contributor
+  credit must survive redistribution.
+- **Volunteer field sightings** (9) — devices photographed from the road, contributed to the
+  upstream project.
+
+Two upstream conventions are preserved because dropping either would change what a pin
+asserts. A published reader and a volunteer sighting within **70 m** are treated as one
+pole, with the authoritative record keeping the pin — so a surviving `sighting` feature is
+precisely one that matched nothing published. And every sighting carries an explicit
+confidence (`confirmed` / `likely` / `probable` / `uncertain`) plus what evidence would
+settle it; several are deliberately filed as *not identified*. The ambient card renders that
+confidence rather than presenting a road-side observation as established.
+
+The snapshot is device-level infrastructure data. It records where publicly documented
+equipment stands, and carries nothing about people, vehicles, or anything a device observed.
+
+The build applies exactly two transforms, recorded in `source.json` alongside a sha256 of the
+output: `lbl` → `name` and `op` → `operator` (so the shared label resolver in
+`src/data/localGeojson.js` needs no per-dataset vocabulary), and FeatureCollection → JSON
+Lines. Every original key is preserved.
+
 ---
 
 ## In-app attribution
 
-The required Google Maps / Cesium credit renders on the on-globe credit line (`#cesium-credits`, bottom-left) and must stay visible — including in clean-view and recording modes (the whole line, logo + "Google Maps" + the "Data attribution" link, stays on screen; only the GEV panels/HUD fade). The layer-specific credits (adsb.lol, TeleGeography, OSM datacenters/dams/roads, NASA FIRMS, CelesTrak, USGS, City of Austin, GBFS, Radio Browser, OpenSky, AISStream) are registered into the expandable **"Data attribution"** popover on that credit line via `viewer.creditDisplay.addStaticCredit(new Cesium.Credit(html, /* showOnScreen */ false))` — see `src/data/dataCredits.js`. When you add a new data source, add its license and attribution to this file **and** append an entry to `DATA_CREDITS` in `src/data/dataCredits.js` so it surfaces in the app.
+The required Google Maps / Cesium credit renders on the on-globe credit line (`#cesium-credits`, bottom-left) and must stay visible — including in clean-view and recording modes (the whole line, logo + "Google Maps" + the "Data attribution" link, stays on screen; only the GEV panels/HUD fade). The layer-specific credits (adsb.lol, TeleGeography, OSM datacenters/dams/roads, NASA FIRMS, CelesTrak, USGS, City of Austin, GBFS, Radio Browser, OpenSky, AISStream, Pulaski surveillance devices) are registered into the expandable **"Data attribution"** popover on that credit line via `viewer.creditDisplay.addStaticCredit(new Cesium.Credit(html, /* showOnScreen */ false))` — see `src/data/dataCredits.js`. When you add a new data source, add its license and attribution to this file **and** append an entry to `DATA_CREDITS` in `src/data/dataCredits.js` so it surfaces in the app.
