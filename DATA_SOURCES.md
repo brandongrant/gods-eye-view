@@ -132,6 +132,25 @@ the retrieval date (2026-07-30), exact download URL, license evidence, and the
 deterministic transform (`scripts/build-sf-neighborhoods.mjs`: `nhood` → `name`, ~2 m
 Douglas-Peucker simplification, 6-decimal rounding).
 
+### Pulaski reported offenses 2017–2025 (fetched at runtime)
+
+Not bundled. `crime/crimes.json` (5.3 MB) holds 114,742 Little Rock Police Department
+index/Part-I offenses carrying LRPD's own coordinates — there is no geocoding step, so
+no geocode-quality caveat applies. Public police statistics.
+
+Two limits are structural and are surfaced in the UI rather than buried here:
+
+- **6,073 of the 114,742 incidents are counted but never mapped**, because LRPD
+  suppresses their location (every RAPE row, among others). The layer row names the
+  suppressed count beside the plotted one, so the map is legible as a view of
+  *locatable* offenses.
+- **The series ends 3 February 2025**, so 2025 is five weeks, not a year. The era
+  chips are labelled accordingly.
+
+The case-status codes shipped in the export (`OP`, `AD`, `AC`, `AR`, …) have no
+published key, so they are deliberately never rendered — guessing that `AR` means an
+arrest would put an invented claim about a real case on screen.
+
 ### Pulaski building footprints (PMTiles, fetched at runtime)
 
 Not bundled. `src/data/pulaski/pulaskiBuildings.js` Range-reads single tiles out of

@@ -168,6 +168,13 @@ export const DATA_CREDITS = [
       + '<a href="https://github.com/brandongrant/pulaski_building_map" target="_blank" rel="noopener">pulaski_building_map</a>',
   },
   {
+    key: 'pulaski-crime',
+    html:
+      'Pulaski reported offenses 2017–2025: Little Rock Police Department '
+      + 'index-offense statistics. 6,073 incidents are counted but not mapped, '
+      + 'because LRPD suppresses their location.',
+  },
+  {
     key: 'pulaski-dispatch',
     html:
       'Pulaski calls for service: City of Little Rock public CAD feed, ' +
