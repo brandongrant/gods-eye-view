@@ -132,6 +132,25 @@ the retrieval date (2026-07-30), exact download URL, license evidence, and the
 deterministic transform (`scripts/build-sf-neighborhoods.mjs`: `nhood` → `name`, ~2 m
 Douglas-Peucker simplification, 6-decimal rounding).
 
+### Pulaski building footprints (PMTiles, fetched at runtime)
+
+Not bundled. `src/data/pulaski/pulaskiBuildings.js` Range-reads single tiles out of
+`buildings.pmtiles` (67 MB, 225,774 footprints, z8–z15) published by
+[`brandongrant/pulaski_building_map`](https://github.com/brandongrant/pulaski_building_map),
+decodes the Mapbox Vector Tile with `@mapbox/vector-tile` + `pbf`, and extrudes each
+footprint by its assessor storey count. Source data is the Pulaski Area Geographic
+Information System (PAgis) and the Pulaski County Assessor — Arkansas public records.
+
+**These tiles carry person-adjacent attributes.** Alongside geometry, features at
+higher zooms include a situs `addr`, and `veh` — a semicolon-joined list of vehicles
+registered at that address (e.g. `2025 CHEVROLET Tahoe; 2007 BENTLEY AZURE; …`) —
+plus `nveh` and `ppv` (personal-property value). They are public assessor records and
+they are already public on the upstream site, but they resolve to individuals at
+addresses, which is exactly the boundary this project's README draws when it says
+people are not a query type. Rendering the buildings layer therefore pulls that data
+into the client. It is appropriate on a private, access-controlled deployment; it is
+**not** appropriate on a public one, and it is not upstreamable.
+
 ### Pulaski surveillance devices (`pulaski_surveillance/`)
 
 `pulaski_surveillance/pulaski_surveillance.geojsonl` bundles 525 publicly documented

@@ -16,6 +16,7 @@ import militaryInstallationsLayer from './data/militaryInstallations.js';
 import militaryAwarenessLayer from './data/militaryAwareness.js';
 import localDataLayers from './data/localLayers.js';
 import pulaskiDispatchLayer from './data/pulaski/pulaskiDispatch.js';
+import pulaskiBuildingsLayer from './data/pulaski/pulaskiBuildings.js';
 import { LAYER_STATE_REGISTRY } from './data/layerState.js';
 import { registerDataCredits } from './data/dataCredits.js';
 import { SceneDirector } from './scenes/director.js';
@@ -225,6 +226,7 @@ async function init() {
     dataManager.register(militaryInstallationsLayer);
     dataManager.register(militaryAwarenessLayer);
     militaryAwarenessLayer.attachDataManager(dataManager);
+    dataManager.register(pulaskiBuildingsLayer);
     dataManager.register(pulaskiDispatchLayer);
     for (const layer of localDataLayers) {
       dataManager.register(layer);

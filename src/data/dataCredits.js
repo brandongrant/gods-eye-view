@@ -161,6 +161,13 @@ export const DATA_CREDITS = [
       '(ODbL 1.0) + Open Infrastructure Map',
   },
   {
+    key: 'pulaski-buildings',
+    html:
+      'Pulaski building footprints: Pulaski Area Geographic Information System '
+      + '(PAgis) and the Pulaski County Assessor, tiled by '
+      + '<a href="https://github.com/brandongrant/pulaski_building_map" target="_blank" rel="noopener">pulaski_building_map</a>',
+  },
+  {
     key: 'pulaski-dispatch',
     html:
       'Pulaski calls for service: City of Little Rock public CAD feed, ' +
