@@ -726,9 +726,12 @@ fires, screenshots time out, coordinate clicks no-op. Verify by calling app func
 (`window.__app` on the ES-module branches; bare globals on `origin/main`) or use a real browser.
 **Cesium will have the same problem.** Plan visual verification accordingly.
 
-**Local toolchain gap:** this machine has **Node v22.13.1**; GEV's `package.json` requires
-**`>=24.14.0 <25 || >=26 <27`**. Install a supported Node before `npm install`, or the engine
-check fails.
+**Local toolchain (verified 2026-08-25 on the author's machine):** Node **v24.19.0** is the
+active nvm default and already satisfies this repo's `engines` field
+(`>=24.14.0 <25 || >=26 <27`) — no install needed. nvm also holds **22.13.1**, which does *not*
+satisfy it, so if `npm install` fails the engine check you are on the wrong version:
+`nvm use 24.19.0`. **Google Cloud SDK 564.0.0 is already installed** (`gcloud` on PATH), so the
+project/bucket/Cloud Run work in §6 needs no toolchain setup either.
 
 **Git on this machine:** `gh` CLI is **not installed**. Pushes work through Git Credential Manager
 as `brandongrant`. LF→CRLF warnings are normal.
