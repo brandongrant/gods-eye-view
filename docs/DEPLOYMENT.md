@@ -74,7 +74,7 @@ the minified copy `closeBundle` wrote into `dist/cesium`.
 |---|---|---|
 | `GOOGLE_MAPS_API_KEY` | build arg → inlined into the bundle | set; restricted to the Cloud Run origin + localhost, and to Map Tiles + Places |
 | `AISSTREAM_API_KEY` | Secret Manager | set — live vessels working |
-| `FIRMS_MAP_KEY` | Secret Manager | set — 300k detections across 3 VIIRS sources |
+| `FIRMS_MAP_KEY` | Secret Manager | set — 300k detections across 3 VIIRS sources. Must be the short `MAP_KEY` from firms.modaps.eosdis.nasa.gov/api/map_key/, **not** an Earthdata Login JWT; FIRMS rejects a JWT with `Invalid MAP_KEY` |
 | `OPENSKY_CLIENT_ID/SECRET` | — | **not set**; see below |
 | `OPENAI_API_KEY` | — | not set; voice + AI HUD summary return 503 |
 | `TOMTOM_API_KEY` | — | not set; traffic falls back to simulation |
@@ -100,6 +100,30 @@ voice place-context features work.
   still populate through the adsb.lol fallback, which returns 200. Fix by adding
   free OpenSky OAuth credentials from an opensky-network.org account.
 - **`/api/terrain/heights` → 502.** Re:Earth upstream, failing from both networks.
+
+## Pulaski layers
+
+Four, all verified live on the deployed service:
+
+| Layer | Id | Token | What it draws |
+|---|---|---|---|
+| Pulaski Buildings | `pulaski-buildings` | `h` | Footprints decoded from PMTiles per viewport, extruded by assessor storey count |
+| Pulaski Reported Crime | `pulaski-crime` | `j` | 114,742 LRPD offenses 2017 → 3 Feb 2025, era chips |
+| Pulaski Calls for Service | `pulaski-dispatch` | `k` | Hourly CAD feed, 24H/7D/30D/ALL window chips |
+| Pulaski Surveillance | `local-pulaski-surveillance` | `p` | 525 bundled devices |
+
+**Never change a token once shipped** — it is the share-link serialization
+character, and the decoder fails closed on an unknown one, so an old build would
+reject the entire layer payload of a new link.
+
+Counts were cross-checked against upstream's own published totals rather than
+merely eyeballed: dispatch `all` = 15,519 against `stats.json` `placed` 15,519;
+crime eras 47,454 / 40,349 / 26,939 summing to 114,742 and each matching the
+`by_year` figures exactly; crime categories matching `by_cat` exactly.
+
+The buildings layer sleeps unless the camera is over the county and below 20 km
+(`status: 'zoom-in'`, which the panel renders as a state rather than an error) —
+a z12 tile of this archive holds 23,341 features.
 
 ## Pulaski data
 
@@ -135,6 +159,24 @@ gcloud builds submit --config cloudbuild.yaml --substitutions="_GOOGLE_MAPS_API_
 ```bash
 gcloud run deploy gods-eye-view --region=us-central1 --image=us-central1-docker.pkg.dev/api-project-1073062544076/gev/gods-eye-view:latest
 ```
+
+## Still open
+
+From the handoff's phasing, not yet built:
+
+- **Pulse and Watch panels** (§2.8, §2.9). The Pulse SVG dashboard is framework-free
+  and ports cleanly, and `pulse/out/pulse.json` is pre-aggregated for exactly those
+  charts at 97 KB — but it is a panel, not a globe layer, and needs UI scaffolding.
+- **Deeds and permits layers.** `deeds/out/recent_activity.geojson` (2.6 MB) is a
+  straight point layer on the dispatch pattern. Permits (16.7 MB) wants interning
+  first, like `crimes.json`.
+- **Owner and vehicle search.** Unblocked by the private deployment, still unbuilt.
+- **The 311 collector** (`pipeline/sr311_collect.py`, unmerged upstream on
+  `claude/lr311-overlay`). Its output is already seeded in the store but stops at
+  2026-07, so the layer would need a visible "as of" label.
+- **Voice tools** for the new layers. Adding them means editing the tool enums in
+  `vite.config.js`, which trips a byte-length + sha256 pin in
+  `src/firstRunExperience.test.mjs` that must be recomputed deliberately.
 
 ## Windows notes
 
