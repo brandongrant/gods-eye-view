@@ -43,9 +43,10 @@ async function start() {
   const app = express();
   app.disable('x-powered-by');
 
-  // Cheapest possible path, ahead of every proxy, so Cloud Run's probe never
-  // waits on an upstream API.
-  app.get('/healthz', (_req, res) => res.type('text/plain').send('ok'));
+  // Cheapest possible path, ahead of every proxy, so a probe never waits on an
+  // upstream API. NOT `/healthz`: Google's front end answers that path itself
+  // with its own 404 and the request never reaches the container.
+  app.get('/_gev/healthz', (_req, res) => res.type('text/plain').send('ok'));
 
   const server = http.createServer(app);
 

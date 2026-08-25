@@ -1,0 +1,13 @@
+.git
+node_modules
+dist
+.env
+*.log
+screenshots/
+qa-shots/
+output/
+.gev-logs/
+.gev-cache/
+.gstack/
+3d-models/
+.claude

@@ -161,6 +161,14 @@ export const DATA_CREDITS = [
       '(ODbL 1.0) + Open Infrastructure Map',
   },
   {
+    key: 'pulaski-dispatch',
+    html:
+      'Pulaski calls for service: City of Little Rock public CAD feed, ' +
+      'collected and geocoded by ' +
+      '<a href="https://github.com/brandongrant/pulaski_building_map" target="_blank" rel="noopener">pulaski_building_map</a>. ' +
+      'Calls for service are requests for a unit, not confirmed offenses.',
+  },
+  {
     key: 'pulaski-surveillance',
     html:
       'Pulaski surveillance devices: Arkansas Department of Transportation, ' +

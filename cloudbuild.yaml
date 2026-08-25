@@ -1,0 +1,32 @@
+# Build the Cloud Run image.
+#
+# _GOOGLE_MAPS_API_KEY and _CESIUM_ION_TOKEN are build args because vite inlines
+# them into the browser bundle. They are client-exposed by design, so passing
+# them as substitutions leaks nothing that the shipped JS does not already
+# contain — every OTHER key stays in Secret Manager and is injected at run time.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args:
+      - build
+      - '--build-arg'
+      - 'GOOGLE_MAPS_API_KEY=${_GOOGLE_MAPS_API_KEY}'
+      - '--build-arg'
+      - 'CESIUM_ION_TOKEN=${_CESIUM_ION_TOKEN}'
+      - '-t'
+      - '${_IMAGE}'
+      - '.'
+
+images:
+  - '${_IMAGE}'
+
+substitutions:
+  _IMAGE: 'us-central1-docker.pkg.dev/api-project-1073062544076/gev/gods-eye-view:latest'
+  _GOOGLE_MAPS_API_KEY: ''
+  _CESIUM_ION_TOKEN: ''
+
+options:
+  machineType: E2_HIGHCPU_8
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1800s
