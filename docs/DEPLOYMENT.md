@@ -7,7 +7,7 @@ State as of 2026-08-25. Executes the plan in `GODS_EYE_VIEW_HANDOFF.md`.
 | Thing | Where |
 |---|---|
 | App | Cloud Run `gods-eye-view`, `us-central1`, `min=1 max=1` |
-| URL | `https://gods-eye-view-1073062544076.us-central1.run.app` (**private**) |
+| URL | `https://gods-eye-view-1073062544076.us-central1.run.app` (**public**) |
 | Images | `us-central1-docker.pkg.dev/api-project-1073062544076/gev/` |
 | Collectors | Cloud Run Job `pulaski-collectors` + Cloud Scheduler `7 * * * *` UTC |
 | Collector store | `gs://gev-pulaski-data/store` (**private**), mounted at `/gcs` via GCS FUSE |
@@ -19,20 +19,47 @@ origin are out of scope" — the Radio catalog generation counter is per-process
 
 ## Access
 
-The service runs `--no-allow-unauthenticated`; only principals with
-`roles/run.invoker` can reach it, and an unauthenticated request gets `403`.
+**The service is PUBLIC.** `allUsers` holds `roles/run.invoker`, so anyone with the
+URL can load it — changed deliberately on 2026-08-25 from the original
+authenticated-only posture.
 
-A browser address bar cannot attach an identity token, so:
-
-```bash
-node tools/gev-proxy.mjs
-```
-
-then open <http://localhost:8080>. Grant another person access with:
+`tools/gev-proxy.mjs` (`npm run proxy`) still works and is still the way in if the
+service is ever made private again:
 
 ```bash
-gcloud run services add-iam-policy-binding gods-eye-view --region=us-central1 --member="user:SOMEONE@example.com" --role="roles/run.invoker"
+gcloud run services remove-iam-policy-binding gods-eye-view --region=us-central1 --member="allUsers" --role="roles/run.invoker"
 ```
+
+### What being public means here
+
+- **No new data is disclosed.** Everything the Pulaski layers read is already
+  public: `buildings.pmtiles`, `crimes.json` and the dispatch archive are all
+  served openly by GitHub Pages and raw.githubusercontent with `ACAO: *`. Nothing
+  was republished to make this work.
+- **But the building tiles carry person-adjacent attributes** — situs `addr`, `veh`
+  (vehicles registered at that address), `ppv` — and a public deployment puts them
+  in front of anyone with the link rather than merely leaving them where upstream
+  already publishes them. This is why the layer is not upstreamable, regardless of
+  hosting.
+- **The metered Google key is the real new exposure.** It is client-exposed by
+  design, so a public page brokers billable tile sessions. The guards below are
+  what stand between that and the bill.
+
+### Cost guards (a budget alerts; only a quota stops)
+
+| Control | Value |
+|---|---|
+| Billing budget | $50/mo, alerts at 25/50/75/90/100% + forecast |
+| Maps key restriction | HTTP referrer, this Cloud Run origin + localhost; API-restricted to Map Tiles + Places |
+| `tile.googleapis.com/threedtiles_renderer_request` | **400,000/day** (was UNLIMITED) |
+| `tile.googleapis.com/threedtiles_root_tileset` | 2,000/day (was 10,000) |
+| `tile.googleapis.com/twodtiles` | 20,000/day (was 100,000) |
+| Per-IP, in-process | `GEV_RATELIMIT_GOOGLE_PER_MIN=60`, `GEV_RATELIMIT_OPENAI_PER_MIN=30` |
+| Cloud Run | `max-instances=1` |
+
+The daily tile quotas are the only hard stop in that list. Raise or lower them with
+the Service Usage `consumerOverrides` API, or in Console under APIs & Services →
+Map Tiles API → Quotas.
 
 ### Why not IAP
 
@@ -40,9 +67,8 @@ The handoff recommended IAP. It is not usable on this project: IAP needs an OAut
 brand, `gcloud iap oauth-brands create` returns `Project must belong to an
 organization`, and that API was permanently shut down in March 2026. A project
 owned by a gmail.com account can only enable IAP through a first-time Cloud
-Console click-through. Cloud Run IAM gives the same outcome — nothing is publicly
-reachable — without it. To switch later: configure the OAuth consent screen in the
-Console, then `gcloud beta run services update gods-eye-view --iap`.
+Console click-through (OAuth consent screen → External, then Cloud Run → Security
+→ enable IAP).
 
 ## Serving
 
