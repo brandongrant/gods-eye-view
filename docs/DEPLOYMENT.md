@@ -1,6 +1,43 @@
 # Deployment — God's Eye View on Google Cloud
 
-State as of 2026-08-25. Executes the plan in `GODS_EYE_VIEW_HANDOFF.md`.
+Executes the plan in `GODS_EYE_VIEW_HANDOFF.md`.
+
+> ## ⏸ Currently SHUT DOWN (2026-08-26)
+>
+> The Cloud Run service is **deleted** and the hourly scheduler is **paused**.
+> Nothing serves and nothing accrues compute cost. Everything needed to bring it
+> back is intact: the images, the secrets, the collected archive, the budget and
+> the tile quotas.
+>
+> The collector store stopped at `total_collected: 15,921` (2026-08-26T01:08:12Z).
+> Upstream's own GitHub Actions cron is still running and still collecting, so the
+> canonical archive keeps advancing — on restart the collectors resume from the
+> bucket and re-derive every output from the raw archive, which is exactly why
+> stopping for a while is safe.
+>
+> ### Restart
+>
+> ```bash
+> gcloud run deploy gods-eye-view --project=api-project-1073062544076 --region=us-central1 --image=us-central1-docker.pkg.dev/api-project-1073062544076/gev/gods-eye-view:latest --service-account=gev-run@api-project-1073062544076.iam.gserviceaccount.com --min-instances=1 --max-instances=1 --memory=1Gi --cpu=1 --port=8080 --timeout=300 --set-secrets=AISSTREAM_API_KEY=AISSTREAM_API_KEY:latest,FIRMS_MAP_KEY=FIRMS_MAP_KEY:latest --set-env-vars=OPENSKY_AUTH_MODE=anon,GEV_RATELIMIT_GOOGLE_PER_MIN=60,GEV_RATELIMIT_OPENAI_PER_MIN=30 --allow-unauthenticated
+> ```
+>
+> ```bash
+> gcloud scheduler jobs resume pulaski-collectors-hourly --project=api-project-1073062544076 --location=us-central1
+> ```
+>
+> The URL is derived from service name + project number, so redeploying under the
+> same name returns the **same** URL. Drop `--allow-unauthenticated` to come back
+> up private, and reach it with `npm run proxy`.
+>
+> ### What is still costing money
+>
+> Effectively nothing: ~37 MB in `gs://gev-pulaski-data` and four container images
+> in Artifact Registry — cents per month combined. Secrets sit in the free tier.
+> The Maps key bills only on use, and nothing is using it.
+>
+> To tear down completely instead, delete the bucket, the Artifact Registry repo,
+> the two secrets, the Cloud Run job, and the scheduler job — or unlink billing
+> from the project, which stops everything at once.
 
 ## What is running
 
