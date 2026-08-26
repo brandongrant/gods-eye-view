@@ -106,11 +106,10 @@ the minified copy `closeBundle` wrote into `dist/cesium`.
 | `TOMTOM_API_KEY` | — | not set; traffic falls back to simulation |
 | `CESIUM_ION_TOKEN` | — | not set; Bing imagery stacks unavailable |
 
-Guard rails already in place: a **$50/month budget** on the billing account with
-alerts at 25/50/75/90/100% plus a forecast rule, HTTP-referrer restriction on the
-Maps key, and `GEV_RATELIMIT_GOOGLE_PER_MIN=60` / `GEV_RATELIMIT_OPENAI_PER_MIN=30`.
-Those rate limits are per-IP and process-local — they are **not** billing caps; the
-budget is.
+See **Cost guards** under Access for the full list. Note that neither the budget
+nor `GEV_RATELIMIT_*` actually stops spend: the budget only emails you, and the
+rate limits are per-IP and process-local (in-memory, reset on restart). The daily
+tile quotas are the only hard ceiling.
 
 A referrer-restricted browser key cannot authorize server-side calls, so
 `/api/google/nearby-places` needs a **second, server-side** Google key before the
